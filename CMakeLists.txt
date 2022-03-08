@@ -18,6 +18,15 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
+find_package(OpenCV REQUIRED)
+
+#rsd - this is required because PCL cmake files are here
+set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl/")
+
+find_package( 
+  #rsd - this line needs to be separate to get 1.10 
+  PCL 1.10 REQUIRED COMPONENTS PATHS /usr/lib/x86_64-linux-gnu/ NO_DEFAULT_PATH
+  )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -108,10 +117,10 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES robot_vision_lectures
-#  CATKIN_DEPENDS cv_bridge geometry_msgs roscpp rospy sensor_msgs std_msgs tf tf_conversions
-#  DEPENDS system_lib
+INCLUDE_DIRS include
+LIBRARIES robot_vision_lectures
+CATKIN_DEPENDS cv_bridge geometry_msgs roscpp rospy sensor_msgs std_msgs tf tf_conversions
+DEPENDS system_lib
 )
 
 ###########
@@ -123,7 +132,12 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
+
+link_directories(${PCL_LIBRARY_DIRS})
+link_directories( ${catkin_LIBRARIES} ${PCL_LIBRARIES} )
+add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -209,3 +223,6 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(crop_3D_image src/crop_3D_image.cpp )
+target_link_libraries(crop_3D_image ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS})
