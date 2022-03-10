@@ -65,6 +65,7 @@ find_package(
 add_message_files(
    FILES
    XYZarray.msg
+   SphereParams.msg
 )
 
 ## Generate services in the 'srv' folder
