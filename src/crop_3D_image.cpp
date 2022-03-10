@@ -7,6 +7,8 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
+#include <robot_vision_lectures/XYZarray.h>
+#include <geometry_msgs/Vector3.h>
 
 using namespace cv;
 using namespace std;
@@ -72,6 +74,28 @@ pcl::PointCloud<pcl::PointXYZ> crop_pcl(pcl::PointCloud<pcl::PointXYZ>& _raw_pcl
 
 }
 
+robot_vision_lectures::XYZarray convert_pcl(pcl::PointCloud<pcl::PointXYZ>& _pcl){
+	robot_vision_lectures::XYZarray xyz;
+	// define a pointer to loop throught the pcl data
+	pcl::PointCloud<pcl::PointXYZ>::iterator pi = _pcl.begin();
+
+    	xyz.points.clear();
+    	geometry_msgs::Vector3 point; 
+       // convert the pcl data to vector3 and add them to the array
+	for( ; pi != _pcl.end(); pi++ ) {
+	
+		if( 0 < fabs( pi->x ) && 0 < fabs( pi->y ) && 0 < fabs( pi->z ) ){
+			point.x = pi->x;
+			point.y = pi->y;
+			point.z = pi->z;
+
+			xyz.points.push_back(point); 
+		}
+	}
+	
+	return xyz;
+}
+
 int main(int argc, char * argv[]){
 	ros::init(argc,argv,"crop_3D_image");
 	ros::NodeHandle nh_;
@@ -81,11 +105,19 @@ int main(int argc, char * argv[]){
 	ros::Subscriber pcl_sub = nh_.subscribe("/camera/depth_registered/points",1,get_pcl);
 	
 	// publisher for writing the cropped pcl
-	ros::Publisher pub_pcl= nh_.advertise<sensor_msgs::PointCloud2>( "/cropped_3D_ball", 10 );
-	int loop_freq = 10;
+	ros::Publisher pub_pcl= nh_.advertise<sensor_msgs::PointCloud2>( "/pcl_cropped_ball", 1 );
+	
+	// publisher for writing the cropped pcl
+	ros::Publisher pub_xyz= nh_.advertise<robot_vision_lectures::XYZarray>( "/xyz_cropped_ball", 1 );
+	
+	int loop_freq = 2;
 	ros::Rate loop_rate(loop_freq);
 	
+	
 	int seq = 0;
+	
+	robot_vision_lectures::XYZarray xyz;
+	
 	while(ros::ok()){
 		if (pcl_received && image_received){
 			pcl::PointCloud<pcl::PointXYZ> cropped_pcl;
@@ -98,6 +130,10 @@ int main(int argc, char * argv[]){
 			header.frame_id = std::string( "camera_color_optical_frame" );
 			cropped_pcl.header = pcl_conversions::toPCL( header );
 			pub_pcl.publish( cropped_pcl );
+			// update the xyz array and publish it
+			xyz.points.clear();
+			xyz = convert_pcl(cropped_pcl);
+			pub_xyz.publish(xyz);
 		}
 		loop_rate.sleep();
 		ros::spinOnce();
