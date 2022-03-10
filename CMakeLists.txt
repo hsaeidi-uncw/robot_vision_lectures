@@ -224,5 +224,8 @@ add_definitions(${PCL_DEFINITIONS})
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(crop_3D_image src/crop_3D_image.cpp )
-target_link_libraries(crop_3D_image ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS})
+add_executable(crop_visualize_3D src/crop_visualize_3D.cpp )
+target_link_libraries(crop_visualize_3D ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS})
+
+
+

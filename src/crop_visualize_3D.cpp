@@ -8,7 +8,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/opencv.hpp>
 #include <robot_vision_lectures/XYZarray.h>
-#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/Point.h>
 
 using namespace cv;
 using namespace std;
@@ -80,21 +80,23 @@ robot_vision_lectures::XYZarray convert_pcl(pcl::PointCloud<pcl::PointXYZ>& _pcl
 	pcl::PointCloud<pcl::PointXYZ>::iterator pi = _pcl.begin();
 
     	xyz.points.clear();
-    	geometry_msgs::Vector3 point; 
-       // convert the pcl data to vector3 and add them to the array
+    	geometry_msgs::Point point; 
+       // convert the pcl data to point and add them to the array
 	for( ; pi != _pcl.end(); pi++ ) {
 	
 		if( 0 < fabs( pi->x ) && 0 < fabs( pi->y ) && 0 < fabs( pi->z ) ){
 			point.x = pi->x;
 			point.y = pi->y;
 			point.z = pi->z;
-
+			
 			xyz.points.push_back(point); 
 		}
 	}
 	
 	return xyz;
 }
+
+
 
 int main(int argc, char * argv[]){
 	ros::init(argc,argv,"crop_3D_image");
@@ -107,7 +109,10 @@ int main(int argc, char * argv[]){
 	// publisher for writing the cropped pcl
 	ros::Publisher pub_pcl= nh_.advertise<sensor_msgs::PointCloud2>( "/pcl_cropped_ball", 1 );
 	
-	// publisher for writing the cropped pcl
+	// publisher for writing the ball fit pcl
+	ros::Publisher pub_fit= nh_.advertise<sensor_msgs::PointCloud2>( "/ball_2D_fit", 1 );
+	
+	// publisher for writing the cropped xyz
 	ros::Publisher pub_xyz= nh_.advertise<robot_vision_lectures::XYZarray>( "/xyz_cropped_ball", 1 );
 	
 	int loop_freq = 2;
@@ -117,10 +122,15 @@ int main(int argc, char * argv[]){
 	int seq = 0;
 	
 	robot_vision_lectures::XYZarray xyz;
-	
+	// define a pointcloud for showing the cropped pcl
+	pcl::PointCloud<pcl::PointXYZ> cropped_pcl;	
+	// define a pointcloud for showing the ball fit in 3D
+	pcl::PointCloud<pcl::PointXYZ> ball_fit_pcl;	
+
 	while(ros::ok()){
 		if (pcl_received && image_received){
-			pcl::PointCloud<pcl::PointXYZ> cropped_pcl;
+			cropped_pcl.clear();
+			ball_fit_pcl.clear();	
 			// crop the pointcloud
 			cropped_pcl = crop_pcl(raw_pcl, img);
 			//update the message and publish it
