@@ -118,10 +118,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-INCLUDE_DIRS include
-LIBRARIES robot_vision_lectures
+#INCLUDE_DIRS include
+#LIBRARIES robot_vision_lectures
 CATKIN_DEPENDS cv_bridge geometry_msgs roscpp rospy sensor_msgs std_msgs tf tf_conversions
-DEPENDS system_lib message_runtime
+DEPENDS message_runtime
 )
 
 ###########
