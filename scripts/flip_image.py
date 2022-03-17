@@ -35,7 +35,7 @@ if __name__ == '__main__':
 		# make sure we process if the camera has started streaming images
 		if img_received:
 			# flip the image up			
-			flipped_img = img_flip_ud = cv2.flip(rgb_img, 0)
+			flipped_img = cv2.flip(rgb_img, 0)
 			# convert it to ros msg and publish it
 			img_msg = CvBridge().cv2_to_imgmsg(flipped_img, encoding="rgb8")
 			# publish the image
