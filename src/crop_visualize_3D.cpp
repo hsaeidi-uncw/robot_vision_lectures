@@ -135,6 +135,21 @@ pcl::PointCloud<pcl::PointXYZ> visualize_sphere(const robot_vision_lectures::Sph
 }
 
 
+pcl::PointCloud<pcl::PointXYZ> visualize_center(const robot_vision_lectures::SphereParams& _params){
+	// define an empty point cloud
+	pcl::PointCloud<pcl::PointXYZ> tmp_pcl;
+	pcl::PointXYZ tmp_point;
+	// use the param values and update the points
+	tmp_point.x = _params.xc;
+	tmp_point.y = _params.yc;
+	tmp_point.z = _params.zc; 
+	tmp_pcl.push_back(tmp_point);
+
+	return tmp_pcl;
+
+}
+
+
 int main(int argc, char * argv[]){
 	ros::init(argc,argv,"crop_3D_image");
 	ros::NodeHandle nh_;
@@ -146,11 +161,14 @@ int main(int argc, char * argv[]){
 	// subscriber for reading shpere fit parameters (x, y, z) of the centery and the radius
 	ros::Subscriber sphere_sub = nh_.subscribe("/sphere_params",1, get_sphere_params);
 		
-	// publisher for writing the cropped pcl
+	// publisher for the cropped pcl
 	ros::Publisher pub_pcl= nh_.advertise<sensor_msgs::PointCloud2>( "/pcl_cropped_ball", 1 );
 	
-	// publisher for writing the ball fit pcl
+	// publisher for the ball fit pcl
 	ros::Publisher pub_fit= nh_.advertise<sensor_msgs::PointCloud2>( "/ball_3D_fit", 1 );
+	
+	// publisher for writing the ball fit pcl
+	ros::Publisher pub_center= nh_.advertise<sensor_msgs::PointCloud2>( "/ball_center", 1 );
 	
 	// publisher for writing the cropped xyz
 	ros::Publisher pub_xyz= nh_.advertise<robot_vision_lectures::XYZarray>( "/xyz_cropped_ball", 1 );
@@ -166,6 +184,8 @@ int main(int argc, char * argv[]){
 	pcl::PointCloud<pcl::PointXYZ> cropped_pcl;	
 	// define a pointcloud for showing the ball fit in 3D
 	pcl::PointCloud<pcl::PointXYZ> ball_fit_pcl;	
+	// define a pointcloud for showing the center of the ball fit
+	pcl::PointCloud<pcl::PointXYZ> ball_center_pcl;
 
 	while(ros::ok()){
 		if (pcl_received && image_received){
@@ -177,6 +197,11 @@ int main(int argc, char * argv[]){
 			ball_fit_pcl.clear();
 			// update the fit based on the parameters
 			ball_fit_pcl = visualize_sphere(sphere_params);				
+			//clear the current pcl
+			ball_center_pcl.clear();
+			// update the fit based on the parameters
+			ball_center_pcl = visualize_center(sphere_params);				
+		
 			//update the message and publish it
 			std_msgs::Header header;
 			header.stamp = ros::Time::now();
@@ -186,6 +211,8 @@ int main(int argc, char * argv[]){
 			pub_pcl.publish( cropped_pcl );
 			ball_fit_pcl.header = pcl_conversions::toPCL( header );
 			pub_fit.publish( ball_fit_pcl );
+			ball_center_pcl.header = pcl_conversions::toPCL( header );
+			pub_center.publish( ball_center_pcl );
 			// update the xyz array and publish it
 			xyz.points.clear();
 			xyz = convert_pcl(cropped_pcl);
