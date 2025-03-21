@@ -228,5 +228,8 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable(crop_visualize_3D src/crop_visualize_3D.cpp )
 target_link_libraries(crop_visualize_3D ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
+add_executable(flip_image_example src/flip_image_example.cpp )
+target_link_libraries(flip_image_example ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
 
 
